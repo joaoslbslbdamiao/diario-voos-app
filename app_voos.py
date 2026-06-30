@@ -157,8 +157,11 @@ with tab_voos:
 
     if not df.empty:
         st.divider()
-        df["DT"] = pd.to_datetime(df["Data"], format="%d/%m/%Y")
+        # CORREÇÃO APLICADA AQUI 👇
+        df["DT"] = pd.to_datetime(df["Data"], errors='coerce', dayfirst=True)
+        df = df.dropna(subset=["DT"])
         df["Mes_Ano"] = df["DT"].dt.strftime("%m/%Y")
+        
         mes_sel = st.selectbox("Filtrar Mês (Voos):", ["Todos"] + sorted(list(df["Mes_Ano"].unique()), reverse=True))
         df_f = df[df["Mes_Ano"] == mes_sel].copy() if mes_sel != "Todos" else df.copy()
         
@@ -169,7 +172,8 @@ with tab_voos:
         df_f["Voo_Valido"] = df_f.apply(lambda r: 1 if str(r["Conta_Premio"]).strip().lower() != "não" else 0, axis=1)
         
         df_dia = df_f.groupby("Data").agg({"Mins": "sum", "Mins_Premio": "sum", "Voo_Valido": "sum"}).reset_index()
-        df_dia["DT"] = pd.to_datetime(df_dia["Data"], format="%d/%m/%Y")
+        # E AQUI TAMBÉM 👇
+        df_dia["DT"] = pd.to_datetime(df_dia["Data"], errors='coerce', dayfirst=True)
 
         def calcular_premio_diario(row):
             if row["Voo_Valido"] == 0: return 0.0
@@ -228,7 +232,9 @@ with tab_kms:
 
     if not df_kms.empty:
         st.divider()
-        df_kms["DT"] = pd.to_datetime(df_kms["Data"], format="%d/%m/%Y")
+        # CORREÇÃO APLICADA AQUI 👇
+        df_kms["DT"] = pd.to_datetime(df_kms["Data"], errors='coerce', dayfirst=True)
+        df_kms = df_kms.dropna(subset=["DT"])
         df_kms["Mes_Ano"] = df_kms["DT"].dt.strftime("%m/%Y")
         
         st.subheader("📅 Histórico Mensal")
@@ -239,7 +245,8 @@ with tab_kms:
         df_k_filt["KMs"] = pd.to_numeric(df_k_filt["KMs"], errors='coerce').fillna(0)
         
         df_k_agrupado = df_k_filt.groupby("Data").agg({"KMs": "sum"}).reset_index()
-        df_k_agrupado["DT"] = pd.to_datetime(df_k_agrupado["Data"], format="%d/%m/%Y")
+        # E AQUI TAMBÉM 👇
+        df_k_agrupado["DT"] = pd.to_datetime(df_k_agrupado["Data"], errors='coerce', dayfirst=True)
         df_k_agrupado = df_k_agrupado.sort_values("DT", ascending=False).reset_index(drop=True)
         
         st.info(f"### 📏 Total Inspecionado: {df_k_filt['KMs'].sum():.1f} KMs")
